@@ -1,2 +1,3 @@
 # Ionic2_geolocation_example
-Example of geolocation example with Ionic 2
+Simple geolocation example with Ionic 2 adapted from [this](http://codepen.io/ionic/pen/uzngt)
+
