@@ -1,0 +1,13 @@
+<ion-navbar *navbar>
+  <ion-title>Google map</ion-title>
+</ion-navbar>
+
+<ion-content padding class="page">
+
+  <div id="map" data-tap-disabled="true"></div>
+
+</ion-content>
+
+<ion-footer-bar class="bar-dark">
+  <button (click)="centerOnMe()" light block>Find me</button>  
+</ion-footer-bar>
