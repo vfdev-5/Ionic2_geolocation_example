@@ -27,10 +27,8 @@
     <name>ionic_geoloc_example</name>
     <description>An Ionic Framework and Cordova project.</description>
     <author email="hi@ionicframework" href="http://ionicframework.com/">Ionic Framework Team</author>
-    <content original-src="index.html" src="http://192.168.43.106:8100" />
+    <content src="index.html" />
     <access origin="*" />
-    <access origin="https://maps.google.com" />
-    <access origin="https://*.google.com" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
     <allow-intent href="tel:*" />

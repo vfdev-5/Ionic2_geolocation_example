@@ -62,16 +62,44 @@ var _ionicNative = require('ionic-native');
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+// let PositionError = {};
+var PERMISSION_DENIED = 1;
+var POSITION_UNAVAILABLE = 2;
+var TIMEOUT = 3;
+
 var MainPage = exports.MainPage = (_dec = (0, _ionicAngular.Page)({
   templateUrl: 'build/pages/main_page/page.html'
+
 }), _dec(_class = function () {
-  function MainPage() {
+  _createClass(MainPage, null, [{
+    key: 'parameters',
+    get: function get() {
+      return [[_ionicAngular.NavController]];
+    }
+  }]);
+
+  function MainPage(nav) {
     _classCallCheck(this, MainPage);
 
     this.map = null;
+    this.nav = nav;
+    this.options = {
+      timeout: 5000,
+      enableHighAccuracy: false,
+      maximumAge: 60000
+    };
   }
 
   _createClass(MainPage, [{
+    key: 'showToast',
+    value: function showToast(msg) {
+      var toast = _ionicAngular.Toast.create({
+        message: msg,
+        duration: 2000
+      });
+      this.nav.present(toast);
+    }
+  }, {
     key: 'onPageLoaded',
     value: function onPageLoaded() {
 
@@ -82,9 +110,6 @@ var MainPage = exports.MainPage = (_dec = (0, _ionicAngular.Page)({
         mapTypeId: google.maps.MapTypeId.ROADMAP
       };
       var map = new google.maps.Map(document.getElementById("map"), mapOptions);
-
-      // let contentString = "<div><a ng-click='clickTest()'>Click me!</a></div>";
-      // let compiled = $compile(contentString)($scope);
 
       this.map = map;
     }
@@ -98,17 +123,27 @@ var MainPage = exports.MainPage = (_dec = (0, _ionicAngular.Page)({
         return;
       }
 
-      var options = { timeout: 5000, enableHighAccuracy: true, maximumAge: 60000 }; // maximumAge in millis (one minute ago)
-      _ionicNative.Geolocation.getCurrentPosition().then(function (resp) {
+      this.showToast("Demand a geolocation with options : timeout=" + this.options.timeout + ", high accuracy=" + this.options.enableHighAccuracy);
+
+      _ionicNative.Geolocation.getCurrentPosition(this.options).then(function (resp) {
         console.log("Geolocation : " + resp.coords.latitude + ", " + resp.coords.longitude);
         // center on the location
         _this.map.setCenter({ lat: resp.coords.latitude, lng: resp.coords.longitude });
-      }, function (error) {
-        console.log("Failed to get Geolocation");
+        _this.showToast("Your location is : " + resp.coords.longitude + ", " + resp.coords.latitude);
+      }).catch(function (error) {
+        console.log("Failed to get Geolocation, errors :" + _ionicNative.Geolocation.PERMISSION_DENIED + ", " + _ionicNative.Geolocation.POSITION_UNAVAILABLE + ", " + _ionicNative.Geolocation.TIMEOUT);
         console.log(error);
-        // this.geoloc.setPosition({lat: 1000.0, lng: 1000.0});
-        // Dialogs.alert("Nirioo a échoué d'obtenir votre position geographique. Essayez d'activer la géolocalisation", "Position géographique", "OK");
-      }, options);
+        if (error.code == PERMISSION_DENIED) {
+          console.log("On permission denied -> REPORT TO DEV");
+          _this.showToast("On permission denied -> REPORT TO DEV");
+        } else if (error.code == POSITION_UNAVAILABLE) {
+          console.log("On position unavailable -> switch on location, activate gps, wifi network");
+          _this.showToast("On position unavailable -> switch on location, activate gps, wifi network");
+        } else if (error.code == TIMEOUT) {
+          console.log("On timeout -> switch on location, activate gps, wifi network -> wait");
+          _this.showToast("On timeout -> switch on location, activate gps, wifi network -> wait");
+        }
+      });
     }
   }]);
 

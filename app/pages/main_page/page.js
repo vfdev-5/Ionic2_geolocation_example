@@ -1,13 +1,38 @@
-import {Page} from 'ionic-angular';
+import {Page, NavController, Toast} from 'ionic-angular';
 import {Geolocation} from 'ionic-native';
+
+
+// let PositionError = {};
+let PERMISSION_DENIED = 1;
+let POSITION_UNAVAILABLE = 2;
+let TIMEOUT = 3;
 
 @Page({
   templateUrl: 'build/pages/main_page/page.html'
+
 })
 export class MainPage {
-  constructor() {
-    this.map = null;
+  static get parameters() {
+    return [[NavController]];
   }
+  constructor(nav) {
+    this.map = null;
+    this.nav = nav;
+    this.options = {
+      timeout: 5000,
+      enableHighAccuracy: false,
+      maximumAge: 60000
+    }
+  }
+
+  showToast(msg) {
+    let toast = Toast.create({
+      message: msg,
+      duration: 2000
+    });
+    this.nav.present(toast);
+  }
+
 
   onPageLoaded() {
 
@@ -20,9 +45,6 @@ export class MainPage {
     let map = new google.maps.Map(document.getElementById("map"),
         mapOptions);
 
-    // let contentString = "<div><a ng-click='clickTest()'>Click me!</a></div>";
-    // let compiled = $compile(contentString)($scope);
-
     this.map = map;
 
   }
@@ -34,23 +56,29 @@ export class MainPage {
       return;
     }
 
-    let options = {timeout: 5000, enableHighAccuracy: true, maximumAge: 60000}; // maximumAge in millis (one minute ago)
-    Geolocation.getCurrentPosition().then(
-      (resp) => {
+    this.showToast("Demand a geolocation with options : timeout=" + this.options.timeout + ", high accuracy=" + this.options.enableHighAccuracy);
+
+    Geolocation.getCurrentPosition(this.options)
+      .then((resp) => {
         console.log("Geolocation : " + resp.coords.latitude + ", " + resp.coords.longitude);
         // center on the location
         this.map.setCenter({lat: resp.coords.latitude, lng: resp.coords.longitude});
-      },
-      (error) => {
-        console.log("Failed to get Geolocation");
+        this.showToast("Your location is : "+ resp.coords.longitude + ", " + resp.coords.latitude);
+      })
+      .catch((error) => {
+        console.log("Failed to get Geolocation, errors :" + Geolocation.PERMISSION_DENIED + ", " + Geolocation.POSITION_UNAVAILABLE + ", " + Geolocation.TIMEOUT);
         console.log(error);
-        // this.geoloc.setPosition({lat: 1000.0, lng: 1000.0});
-        // Dialogs.alert("Nirioo a échoué d'obtenir votre position geographique. Essayez d'activer la géolocalisation", "Position géographique", "OK");
-
-      },
-      options
-    );
-
+        if (error.code == PERMISSION_DENIED) {
+          console.log("On permission denied -> REPORT TO DEV");
+          this.showToast("On permission denied -> REPORT TO DEV");
+        } else if ( error.code == POSITION_UNAVAILABLE ) {
+          console.log("On position unavailable -> switch on location, activate gps, wifi network");
+          this.showToast("On position unavailable -> switch on location, activate gps, wifi network");
+        } else if ( error.code == TIMEOUT ) {
+          console.log("On timeout -> switch on location, activate gps, wifi network -> wait");
+          this.showToast("On timeout -> switch on location, activate gps, wifi network -> wait");
+        }
+      });
   }
 
 
